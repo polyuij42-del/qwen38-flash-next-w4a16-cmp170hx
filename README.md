@@ -40,7 +40,7 @@ The three env vars that make it work (see [`launch-vllm.sh`](launch-vllm.sh)):
 
 ## 📦 Provenance — how to actually install this (nothing private)
 
-Every piece below is public. Our image contains **no private patches** — we verified the core files are byte-identical to the public repo (md5):
+Every piece below is public. Our image contains **no private patches baked in** — we verified the core files are byte-identical to the public repo (md5). The **one** exception is a runtime-only read-only file override (`pp-partition-fix/distributed/utils.py`, mounted with `-v`, image untouched) — see the ⚠️ note below; without it the mandatory `VLLM_PP_LAYER_PARTITION=26,22` cannot start:
 
 | Piece | Where to get it |
 |---|---|
@@ -56,6 +56,22 @@ cd Qwen-Flash-SM80-170HX && docker build -t qwen-flash-sm80:local .
 ```
 
 **What differs vs the community deployment guide**: model = W4A16 AutoRound (not NVFP4); PLE path = `mmap` demand-paging with `VLLM_PLE_GDS=0` (not GDS); works **without GPU P2P and without 96 GB RAM**; plus the **mandatory 16 KiB disk read-ahead below — which neither guide mentions**.
+
+### ⚠️ `VLLM_PP_LAYER_PARTITION=26,22` requires the bundled `pp-partition-fix/` override — do not remove the `-v` mount
+
+`VLLM_PP_LAYER_PARTITION` is a **global env inherited by every subprocess**, including the PLE CPU-offload sidecar (`PleOffloadWorker`) — a standalone process that builds its own meta model with `pp_size=1`. Stock `vllm/distributed/utils.py::get_pp_indices()` asserts `len(partitions) == pp_size`, so `2 != 1` raises:
+
+```
+ValueError: len(partitions)=2 does not match pp_size=1.
+```
+
+Engine never starts (symptoms: stuck at "activating", `/health` keeps returning 000, container stays "Up"). The bundled override changes **one function only**: when segment count ≠ `pp_size` it logs a warning and falls back to automatic partitioning for that process (sidecar gets `(0,48)`, identical to a default run); the real PP ranks (`pp_size=2`) still get 26/22 unchanged. Mount it read-only at runtime — no image rebuild:
+
+```bash
+-v "$REPO_DIR/pp-partition-fix/distributed/utils.py:/usr/local/lib/python3.12/dist-packages/vllm/distributed/utils.py:ro"
+```
+
+The startup log line `VLLM_PP_LAYER_PARTITION 26,22 does not match pp_size=1; falling back to default layer partitioning` (WARNING) is **expected and normal** — that is the sidecar taking the fallback path.
 
 ---
 
