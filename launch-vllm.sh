@@ -5,10 +5,17 @@
 #
 # 关键 env（决定"几乎不吃系统 RAM"的核心）：
 #   VLLM_PLE_MMAP=1            # PLE(n-gram 增强嵌入)表走 NVMe mmap，按需换页，不常驻 RAM
-#   VLLM_PLE_MMAP_RANDOM=1     # 随机读 PLE 表，验证 mmap 换页路径
+#   VLLM_PLE_MMAP_RANDOM=1     # PLE 表 mmap 标 MADV_RANDOM 关内核预读 —— ⚠️ 该开关由
+#                              #   patched/vllm_ple_mmap.py 提供，镜像原版**不认识**这个 env
 #   VLLM_PLE_CPU_OFFLOAD=1     # PLE 层放 CPU 侧（非 pinned）
-#   VLLM_PLE_GDS=0             # 不启用 GPUDirect Storage
+#   VLLM_PLE_GDS=0             # 不启用 GPUDirect Storage（GDS 与 mmap 源码互斥）
 #   CUDA_VISIBLE_DEVICES=0,1
+#
+# 三个运行时只读挂载（缺一不可，详见 README「Runtime patch overrides」）：
+#   pp-partition-fix/distributed/utils.py  ← 没有它 26,22 切分直接把 PLE 边车崩死
+#   patched/vllm_ple_mmap.py               ← 镜像只支持 FP8 表；本模型 PLE 表是 BF16，
+#                                            不挂它启动即 RuntimeError: only FP8 shards…
+#   patched/ep_weight_filter.py            ← 加载阶段跳过 102 GB PLE 分片，省一整遍顺序 I/O
 
 set -e
 
@@ -36,8 +43,10 @@ docker run -d --name qwen-w4a16-pp2 --gpus all \
   -e FLASHINFER_DISABLE_VERSION_CHECK=1 \
   -e VLLM_PP_LAYER_PARTITION=26,22 \
   -v "$REPO_DIR/pp-partition-fix/distributed/utils.py:/usr/local/lib/python3.12/dist-packages/vllm/distributed/utils.py:ro" \
+  -v "$REPO_DIR/patched/vllm_ple_mmap.py:/usr/local/lib/python3.12/dist-packages/vllm_ple_mmap.py:ro" \
+  -v "$REPO_DIR/patched/ep_weight_filter.py:/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/ep_weight_filter.py:ro" \
   -v /mnt/data/qwen-flash-data:/mnt/data/qwen-flash-data \
-  -p 18430:18430 \
+  -p 18430:8000 \
   qwen-flash-sm80:0.1.4 \
   vllm serve /mnt/data/qwen-flash-data/models/Qwen3.8-Flash-Next-W4A16-AutoRound \
     --pipeline-parallel-size 2 \

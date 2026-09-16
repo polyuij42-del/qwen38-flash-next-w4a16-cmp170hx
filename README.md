@@ -40,7 +40,7 @@ The three env vars that make it work (see [`launch-vllm.sh`](launch-vllm.sh)):
 
 ## 📦 Provenance — how to actually install this (nothing private)
 
-Every piece below is public. Our image contains **no private patches baked in** — we verified the core files are byte-identical to the public repo (md5). The **one** exception is a runtime-only read-only file override (`pp-partition-fix/distributed/utils.py`, mounted with `-v`, image untouched) — see the ⚠️ note below; without it the mandatory `VLLM_PP_LAYER_PARTITION=26,22` cannot start:
+Every piece below is public. Our image contains **no private patches baked in** — we verified the core files are byte-identical to the public repo (md5). The image runs with **three runtime-only read-only file overrides** (`-v` mounts, image untouched) — all three are mandatory here; see the section **⚠️ Runtime patch overrides — three mounts, all mandatory** below:
 
 | Piece | Where to get it |
 |---|---|
@@ -57,7 +57,17 @@ cd Qwen-Flash-SM80-170HX && docker build -t qwen-flash-sm80:local .
 
 **What differs vs the community deployment guide**: model = W4A16 AutoRound (not NVFP4); PLE path = `mmap` demand-paging with `VLLM_PLE_GDS=0` (not GDS); works **without GPU P2P and without 96 GB RAM**; plus the **mandatory 16 KiB disk read-ahead below — which neither guide mentions**.
 
-### ⚠️ `VLLM_PP_LAYER_PARTITION=26,22` requires the bundled `pp-partition-fix/` override — do not remove the `-v` mount
+### ⚠️ Runtime patch overrides — three mounts, all mandatory
+
+`launch-vllm.sh` read-only-mounts **three** files over the image at runtime (no rebuild). Verified against `qwen-flash-sm80:0.1.4` by md5 — all three differ from the image originals, i.e. none of this behavior exists in the plain image:
+
+| Mount (repo file → container path) | md5 | What it does / what happens without it |
+|---|---|---|
+| `pp-partition-fix/distributed/utils.py` → `vllm/distributed/utils.py` | `4f9faf4a…` | Lets `VLLM_PP_LAYER_PARTITION=26,22` coexist with the PLE offload sidecar. Without it → **startup crash**, see below. |
+| `patched/vllm_ple_mmap.py` → `vllm_ple_mmap.py` | `ec71c7bd…` | **W4A16 requires this.** The image's `vllm_ple_mmap.py` supports **FP8 tables only**; this model's PLE table is **BF16** → without the mount: `RuntimeError: PLE mmap: only FP8 shards are supported, got BF16`. The override adds BF16/F16 passthrough (+ non-FP8 scale handling) **and the `VLLM_PLE_MMAP_RANDOM` switch** — the image does not recognize that env at all (grep for `MADV_RANDOM` in the image file: 0 hits), so without this file the env is silently a no-op and every PLE page fault gets kernel read-ahead. |
+| `patched/ep_weight_filter.py` → `vllm/model_executor/model_loader/ep_weight_filter.py` | `79d3d2a1…` | With `VLLM_PLE_MMAP=1`, skips the `ple_embedding.ngram_embedding.shard_*` tensors during weight loading. Without it the loader **sequentially reads the whole ~102 GB PLE table once and throws it away** — load time explodes and the page cache the mmap path depends on gets flushed. |
+
+#### 1. `VLLM_PP_LAYER_PARTITION=26,22` requires the bundled `pp-partition-fix/` override — do not remove the `-v` mount
 
 `VLLM_PP_LAYER_PARTITION` is a **global env inherited by every subprocess**, including the PLE CPU-offload sidecar (`PleOffloadWorker`) — a standalone process that builds its own meta model with `pp_size=1`. Stock `vllm/distributed/utils.py::get_pp_indices()` asserts `len(partitions) == pp_size`, so `2 != 1` raises:
 
@@ -217,7 +227,21 @@ W4A16 线上档 **K=5 / block 1680**，单流 c=1，`temperature=0`，每类型�
 
 ---
 
-## 七、复现
+## 七、已知坑清单（照本仓库复现前必读，全部实测踩过）
+
+1. **三个 `-v` 运行时挂载缺一不可**（见上文 Runtime patch overrides）——尤其 `patched/vllm_ple_mmap.py`：镜像不支持 BF16 PLE 表，不挂直接崩。
+2. **`--moe-backend` 必须 `auto`**，不能 `marlin`。且这个错（还有下一条）都爆在 **8–10 分钟权重加载完之后**，别靠试错，改参数前先自查。
+3. **MTP `K` 与 `--block-size` 是绑死的**，block 必须同时满足三条：`≥1646`（mamba page 对齐）、`% capacity == 0`（QSA 环容量：K0→4 / K≤4→8 / K5~8→12）、`% 16 == 0`（attention backend `MultipleOf(16)`，最容易漏）。⇒ **K=5~8 最小合法 block = 1680**；`1656`、`2424` 实测都崩 `No common block size`。加载完成 ≠ 稳了——这条也崩在加载完之后约 5 分钟。
+4. **K=0（关 MTP）在并发下会挂死引擎**（实测挂 307 s、容器自退），不能当省显存降级档。
+5. **不要写死 `--kv-cache-memory`**，用 `--gpu-memory-utilization 0.95` 走自动分配：写死会跳过全部余量校验。两卡权重差 6.22 GiB（MTP 草稿头挂 PP1），**爆显存永远先爆 PP1**；日志里 vLLM 的 "fully utilize 建议值" 是零余量数字，绝不能照抄。
+6. **崩溃后显存可能残留**（容器没了、每张卡还占着几十 GB，下次启动报 Free memory不足）。用 `nvidia-smi --query-compute-apps=pid,used_memory` 拿 PID 后 `kill -9`；**SSH 下永远别用 `pkill -f <模式>`**——它会匹配到 SSH 自己的命令行而把会话打死（要杀就按 PID）。
+7. **单流 decode 时第二张卡利用率只有 ~30% 是 PP2 结构使然**（流水线气泡；本机无 P2P 更明显），不是配置错了。只有 prefill 阶段两卡才会同时 90%+；别人晒"单并发双卡 90%"时，先怀疑他采样在 prefill 或根本不是 PP2。
+8. **客户端行为两件事**：服务端强制 `temperature=1.0`（请求里传 `temperature=0` 不是贪心，单次结果不可比，基准必须多轮取中位）；`reasoning_effort` 合法值只有 **xhigh / medium / low**，传别的（包括常见的 `high`）直接 HTTP 400。
+9. **端口映射是 `18430->8000`**：vLLM 在容器内监听 8000，宿主上映射到 18430。别写 `-p 18430:18430`，那样服务在 18430 上根本连不上（本仓库曾错过，已修）。
+
+---
+
+## 八、复现
 
 ```bash
 # 1) 启动服务
@@ -243,6 +267,9 @@ python3 bench/parse13.py data/raw-13.jsonl
 | 文件 | 内容 |
 |---|---|
 | `launch-vllm.sh` | 完整 docker + `vllm serve` 启动命令 |
+| `pp-partition-fix/distributed/utils.py` | 运行时覆盖 ①：26,22 切分与 PLE 边车共存（md5 `4f9faf4a…`） |
+| `patched/vllm_ple_mmap.py` | 运行时覆盖 ②：BF16/F16 PLE 表 + `MADV_RANDOM`（md5 `ec71c7bd…`） |
+| `patched/ep_weight_filter.py` | 运行时覆盖 ③：加载期跳过 102 GB PLE 分片（md5 `79d3d2a1…`） |
 | `data/environment.txt` | 16 项环境事实的原始命令输出快照 |
 | `data/mtp-k-scan.tsv` | MTP K 扫描数据 |
 | `data/kv-block-scan.tsv` | KV ↔ K/block 双因素数据 |
