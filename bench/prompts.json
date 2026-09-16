@@ -1,0 +1,67 @@
+[
+  {
+    "id": "code_gen",
+    "name": "代码生成",
+    "prompt": "请用 Python 写一个线程安全的 LRU 缓存实现，包含 get/put、容量淘汰、类型注解和逐行中文注释。代码要完整可运行。"
+  },
+  {
+    "id": "code_fix",
+    "name": "代码修bug",
+    "prompt": "下面这段 Python 在并发场景下会偶发数据丢失，请找出问题并给出修复后的完整代码，说明每一处修改的原因。\n\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.n = 0\n        self.lock = threading.Lock()\n\n    def inc(self):\n        with self.lock:\n            self.n = self.n + 1\n\n    def reset(self):\n        self.n = 0\n\nc = Counter()\n\ndef worker():\n    for _ in range(100000):\n        c.inc()\n\nts = [threading.Thread(target=worker) for _ in range(8)]\n[t.start() for t in ts]\n[t.join() for t in ts]\nprint(c.n)\n"
+  },
+  {
+    "id": "code_read",
+    "name": "代码解释",
+    "prompt": "请逐段解释下面这段 Rust 代码的机制，包括生命周期标注、所有权转移和迭代器的惰性求值部分，并指出潜在的性能陷阱。\n\nuse std::collections::HashMap;\n\nfn word_count<'a>(text: &'a str) -> HashMap<&'a str, usize> {\n    let mut m: HashMap<&'a str, usize> = HashMap::new();\n    for w in text.split_whitespace() {\n        let w = w.trim_matches(|c: char| !c.is_alphanumeric());\n        if w.is_empty() { continue; }\n        *m.entry(w).or_insert(0) += 1;\n    }\n    m\n}\n\nfn top_k<'a>(m: HashMap<&'a str, usize>, k: usize) -> Vec<(&'a str, usize)> {\n    let mut v: Vec<_> = m.into_iter().collect();\n    v.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));\n    v.truncate(k);\n    v\n}\n"
+  },
+  {
+    "id": "zh_writing",
+    "name": "中文技术写作",
+    "prompt": "请以「为什么本地大模型推理常常卡在显存而不是算力」为题，写一篇 800 字左右的技术随笔，要求有具体数字举例，语言通俗但不失准确。"
+  },
+  {
+    "id": "math_reason",
+    "name": "数学多步推理",
+    "prompt": "甲、乙两人同时从 A、B 两地相向出发，甲每分钟走 60 米，乙每分钟走 80 米。两人第一次相遇后继续前进并各自到达对方出发点后立即原速返回，第二次相遇时距 A 地 720 米。请给出完整推导过程并求出 A、B 两地的距离。"
+  },
+  {
+    "id": "json_extract",
+    "name": "JSON结构化抽取",
+    "prompt": "从下面文本中抽取所有订单信息，输出严格符合给定 schema 的 JSON 数组，不要输出任何解释文字。\n\nschema: {\"order_id\": str, \"customer\": str, \"items\": [{\"name\": str, \"qty\": int, \"price\": float}], \"total\": float, \"date\": str(YYYY-MM-DD)}\n\n文本：\n2026年3月4日，张三下单购买了一套茶具（2套，每套158.5元）和一罐明前龙井（1罐，320元），订单号 OD-3341。同日李四下单了紫砂壶一把，价格660元，订单号 OD-3342。3月7日王五补单，买了茶具1套158.5元、茶盘1个240元、龙井2罐共640元，订单号 OD-3350。\n"
+  },
+  {
+    "id": "translate_zh2en",
+    "name": "中译英",
+    "prompt": "把下面这段中文技术说明翻译成地道英文，术语需准确，保持段落结构，不要添加原文没有的内容。\n\n流水线并行把模型按层切成若干段，每段放在一张卡上，只在段的边界传递激活值，因此不需要卡间的高带宽互联。代价是同一时刻只有一段在计算，其余段处于空闲状态，这部分空转被称为流水线气泡。气泡占比与微批数量成反比，微批越多，气泡越小，但单请求的延迟也会随之上升。\n"
+  },
+  {
+    "id": "summarize",
+    "name": "长文摘要",
+    "prompt": "请阅读以下材料，用不超过 200 字概括其核心结论，并另起一段列出三条最有价值的数据。\n\n材料：\n本次测试在双卡环境下对同一个 180B 规模的 MoE 模型做了三种 KV cache 量化方案的对比。fp8 方案把 KV 占用压缩到原来的二分之一，在 32k 长上下文下首字延迟下降 37%，但在 128k 以上的极端长度出现明显的累积误差，困惑度上升 0.8。int8 方案压缩率同样是二分之一，困惑度上升仅 0.2，但因为没有专门的核函数，推理速度比 fp8 慢 11%。不量化的 fp16 基线占用最大，32k 时就已经触及显存上限，无法支持 128k 场景。综合来看，若业务侧可以接受 0.2 的困惑度损失，int8 是更稳妥的选择；若追求长上下文本的极限延迟，且能容忍一定的精度下降，则 fp8 更合适。另外测试中还发现，页大小为 16 时的碎片率比页大小 32 高出近一倍，这是显存吃紧的次要原因。\n"
+  },
+  {
+    "id": "creative",
+    "name": "创意写作",
+    "prompt": "写一个短篇科幻故事的开头：主角在一艘失联二十年的货运飞船上醒来，发现导航系统记录的目的地是一个星图上不存在的坐标。要求氛围压抑，有具体的感官细节，600 字左右。"
+  },
+  {
+    "id": "table_list",
+    "name": "表格整理",
+    "prompt": "把下面这段凌乱的会议记录整理成一张 Markdown 表格，列名为：事项、负责人、截止日期、状态、阻塞原因（无则填“-”）。不要输出表格以外的内容。\n\n3月的复盘会：数据管道重构这块张伟在跟，原本说 12 号完成，估计要拖到 18 号，原因是上游的埋点字段还没定；模型评测集扩充由李娜负责，20 号前交付，目前正常推进；GPU 采购卡在财务审批上，负责人陈斌，原定月底到现在还没批下来；线上推理服务的灰度发布已经做完了，是本完成的；剩下的就是文档站改版，王芳这边人手不够，排到了下个月中旬。\n"
+  },
+  {
+    "id": "sql_gen",
+    "name": "SQL生成",
+    "prompt": "给定表结构：orders(id, user_id, amount, status, created_at)，users(id, name, city, vip_level)，refunds(order_id, amount, reason, created_at)。请写一条 SQL，统计 2026 年第一季度每个城市中 VIP 等级大于等于 3 的用户的人均实付金额（实付=订单金额-退款金额），只统计已完成订单，按人均实付降序排列，取前 20 名。要求写出 SQL 并简要说明关键 join 与过滤条件的作用。"
+  },
+  {
+    "id": "agent_plan",
+    "name": "Agent多步规划",
+    "prompt": "你是一个可以调用工具的助手，可用工具：search_web(query)、read_file(path)、run_python(code)、send_email(to, subject, body)。用户需求：「帮我查一下最近三个月固态硬盘的价格走势，如果整体降幅超过 15%，就写份报告明早发给采购组。」请输出你的完整执行计划：每一步调用哪个工具、传什么参数、依据什么决定下一步分支。用编号列表给出。"
+  },
+  {
+    "id": "qa_short",
+    "name": "短问答",
+    "prompt": "请分别用一句话回答：Docker 容器和虚拟机的主要区别是什么？HTTP 状态码 429 代表什么？为什么 SSD 不适合长期断电存放？Redis 的持久化方式有哪两种？"
+  }
+]

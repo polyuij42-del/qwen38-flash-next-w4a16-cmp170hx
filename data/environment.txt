@@ -1,0 +1,62 @@
+# 运行环境实测快照（2026-09-16，直接从线上 18430 容器/主机抓取）
+# 目的：让 16 项可复现清单每一项都有原始命令可核。
+
+## GPU
+$ nvidia-smi --query-gpu=name,memory.total,clocks.mem --format=csv
+name, memory.total [MiB], clocks.current [MHz]
+NVIDIA CMP 170HX 64GB, 65536 MiB, 1836 MHz   (x2)
+# GPU0/GPU1 各 62.6 / 64.2 GiB 已用（含 KV 池）
+# CMP 170HX = GA100 矿卡，被动散热，HBM2e 超频至 1836 MHz
+
+## PCIe link（实际协商，非满配）
+$ sudo lspci -vv | grep -A40 "3D controller: NVIDIA" | grep -iE "LnkCap:|LnkSta:"
+  LnkCap: Speed 5GT/s, Width x16
+  LnkSta: Speed 5GT/s, Width x4 (downgraded)     # 两张卡都降速到 x4
+# nvidia-smi pcie.link.gen.current=2 width=4；max gen2 x16
+# => 跨卡只有 PCIe Gen2 x4，且无 NVLink
+
+## P2P
+$ nvidia-smi topo -p2p r
+   GPU0 GPU1
+GPU0  X   GNS
+GPU1 GNS  X        # GNS = GPU P2P 不支持
+$ nvidia-smi topo -m  => GPU0/GPU1 = PHB（经 PCIe host bridge，无 NVLink）
+
+## CPU
+$ lscpu
+Model name: AMD Ryzen 5 5600X 6-Core Processor（6C12T，1 NUMA）
+$ uname -r => 7.0.0-30-generic   Ubuntu 26.04 LTS
+
+## 系统 RAM 实际占用（核心卖点：几乎不吃 RAM）
+$ free -h
+Mem: 38Gi total, 16Gi used, 21Gi available
+$ docker stats --no-stream qwen-w4a16-pp2
+15.62GiB / 38.06GiB   41.05%          # 容器 cgroup 内存（含 mmap 页缓存）
+$ 容器内各 vllm 进程 PSS（smaps_rollup）合计 ≈ 11.3 GiB
+# 模型目录 169G（含 PLE 表 102G）走 NVMe mmap，按需换页，非 pinned。
+# 加载峰值 RSS ~20 GiB 级，常态 RSS ~10 GiB 级；PLE 表大部分留在盘上不进 RAM。
+
+## PLE offload 关键 env（决定低 RAM）
+VLLM_PLE_MMAP=1
+VLLM_PLE_MMAP_RANDOM=1
+VLLM_PLE_CPU_OFFLOAD=1
+VLLM_PLE_GDS=0
+
+## 软件栈版本（容器内 import 实测）
+vllm    0.1.dev20073+g8e685d198   # fork，commit g8e685d198；镜像 qwen-flash-sm80:0.1.4
+torch   2.13.0+cu130  (torch.version.cuda 13.0)
+triton  3.7.1
+driver  610.43.03
+nvcc(host) 12.4
+
+## 模型 checkpoint / quant
+path:   /mnt/data/qwen-flash-data/models/Qwen3.8-Flash-Next-W4A16-AutoRound
+size:   169 GB, 17 safetensors 分片 + index.json
+arch:   model_type=qwen4_exp，48 层，QSA 稀疏注意力 + GDN 线性注意力混插，512-expert MoE
+quant:  AutoRound 0.15.0，bits=4 group=128 sym int4（W4A16）；
+        例外保 16-bit：embed_tokens / hyper_connection / in_proj_a,b / indexer / mtp.*
+PLE:    n-gram 增强嵌入 sidecar ~102 GB，mmap 到 NVMe（非 pinned host memory）
+
+## MTP（投机解码）参数
+--speculative-config {"method":"mtp","num_speculative_tokens":5}
+草稿头 1 层 full_attention，挂 PP1；block-size 1680（K>=5 最小合法 block）

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qwen3.8-Flash-Next W4A16 推理服务性能测试报告 (端口 18430)</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1f2328; --muted:#5b6570;
+    --line:#e3e7ec; --accent:#185FA5; --accent-bg:#E6F1FB;
+    --good:#0F6E56; --good-bg:#E1F5EE; --warn:#854F0B; --warn-bg:#FAEEDA;
+    --bad:#A32D2D; --bad-bg:#FCEBEB; --th:#F1EFE8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 20px;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.65;}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+  h2{font-size:16px;font-weight:600;margin:28px 0 12px;padding-left:10px;border-left:4px solid var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--th);font-weight:600;color:#333}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:6px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .kpi .big{font-size:26px;font-weight:700;line-height:1.1}
+  .kpi .cap{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .kpi.accent{background:var(--accent-bg);border-color:#B5D4F4}
+  .kpi.good{background:var(--good-bg);border-color:#9FE1CB}
+  .kpi.warn{background:var(--warn-bg);border-color:#FAC775}
+  .tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:20px;font-weight:600}
+  .tag.good{background:var(--good-bg);color:var(--good)}
+  .tag.warn{background:var(--warn-bg);color:var(--warn)}
+  .tag.bad{background:var(--bad-bg);color:var(--bad)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .hl{color:var(--accent);font-weight:600}
+  .bar-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+  .bar-lab{width:54px;font-size:13px;text-align:right;color:var(--muted)}
+  .bar-track{flex:1;background:#eef1f4;border-radius:6px;height:20px;position:relative;overflow:hidden}
+  .bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#378ADD,#185FA5)}
+  .bar-val{width:96px;font-size:12.5px;color:#333}
+  .foot{color:var(--muted);font-size:12px;margin-top:24px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Qwen3.8-Flash-Next W4A16 · 推理服务性能测试报告</h1>
+  <div class="sub">服务端口 18430 · 测试日期 2026-09-16 · 平台 msi（2× CMP 170HX 64GB）</div>
+
+  <h2>核心结论</h2>
+  <div class="grid">
+    <div class="kpi accent"><div class="big">~23 路</div><div class="cap">真实同时并发上限（喂 64 → 23 运行 + 42 排队）</div></div>
+    <div class="kpi good"><div class="big">774 tok/s</div><div class="cap">聚合吞吐峰值（在并发上限 23 路处达到）</div></div>
+    <div class="kpi warn"><div class="big">8–16 路</div><div class="cap">最佳并发甜点位（单路 46–64 tok/s）</div></div>
+  </div>
+  <div class="card">
+    <b>一句话：</b>在真实并发上限（约 <span class="hl">23 路</span>）以内，聚合吞吐随并发近似线性爬升，到 23 路达峰 <span class="hl">774 tok/s</span>；单流 decode 约 104 tok/s。并发一旦超过 23，引擎无法同时运行更多路（多余请求排队），吞吐不再上升。
+  </div>
+
+  <h2>一、测试平台与服务配置</h2>
+  <div class="card">
+  <table>
+    <tr><th style="width:32%">项目</th><th>配置</th></tr>
+    <tr><td>服务器 / 系统</td><td>msi（Ubuntu）· CPU 直连双卡</td></tr>
+    <tr><td>GPU</td><td>2 × NVIDIA CMP 170HX 64GB（HBM 超频 1836 MHz，功耗上限 250W · 未降频锁定）</td></tr>
+    <tr><td>推理框架</td><td>vLLM V1（v0.1.dev20073）· Docker 镜像 qwen-flash-sm80:0.1.4 · 端口 18430</td></tr>
+    <tr><td>模型</td><td>Qwen3.8-Flash-Next-W4A16-AutoRound（AutoRound W4A16 量化）</td></tr>
+    <tr><td>并行策略</td><td>流水线并行 PP2（层切分 26/22）· TP1 · PLE 走 mmap + CPU offload</td></tr>
+    <tr><td>投机解码</td><td>MTP，num_speculative_tokens = 5</td></tr>
+    <tr><td>最大上下文</td><td>262,144 tokens（256K）</td></tr>
+    <tr><td>关键参数</td><td>block-size 1680 · max-num-batched-tokens 8192 · max-num-seqs 64 · 前缀缓存开</td></tr>
+    <tr><td>CUDA 图</td><td>FULL_AND_PIECEWISE · 抓图档位覆盖至 384（含 48/96/144/192/288/384）</td></tr>
+    <tr><td>显存利用率</td><td>gpu-memory-utilization 0.95</td></tr>
+  </table>
+  </div>
+
+  <h2>二、显存 / 权重 / KV 分配（单卡）</h2>
+  <div class="card">
+  <table>
+    <tr><th style="width:40%">占用项</th><th class="num">容量</th><th>说明</th></tr>
+    <tr><td>显存总量</td><td class="num">63.39 GiB</td><td>0.95 预算 ≈ 60.22 GiB</td></tr>
+    <tr><td>权重 + 非 torch 常驻</td><td class="num">41.7 GiB</td><td>模型权重（W4A16）</td></tr>
+    <tr><td>峰值激活</td><td class="num">1.1 GiB</td><td>forward 中间激活</td></tr>
+    <tr><td>CUDA 图显存</td><td class="num">0.70 GiB</td><td>随抓图档位增加而增大</td></tr>
+    <tr><td>KV Cache 显存</td><td class="num">17.4 GiB</td><td>剩余显存全给 KV</td></tr>
+    <tr><td><b>KV Cache 容量</b></td><td class="num"><b>1,003,753 tokens</b></td><td>可共享动态分配的 token 总量</td></tr>
+    <tr><td>满 256K 的最大并发</td><td class="num">3.83×</td><td>≈ 同时 3~4 路跑满 256K 上下文</td></tr>
+  </table>
+  <div class="note">说明：KV 是共享分页动态池，每路能用的上下文上限恒为 256K（与并发数无关）；但短请求也各占一整块（block-size 1680 + mamba/GDN 每序列固定状态），导致并发路数被卡在 ~23。</div>
+  </div>
+
+  <h2>三、并发阶梯实测数据（仅真实并发上限 ≤23 路）</h2>
+  <div class="card">
+  <div style="font-size:13px;color:var(--muted);margin-bottom:10px">方法：流式并发打满 C 路，同 prompt（命中前缀缓存，隔离出 decode），max_tokens=256，各 3 轮取中位。超过并发上限（&gt;23）的数据无意义，已剔除。</div>
+  <table>
+    <tr>
+      <th>并发数 C</th>
+      <th class="num">聚合吞吐 tok/s<br>(中位)</th>
+      <th class="num">单路 decode tok/s<br>(中位)</th>
+      <th class="num">实际同时并发</th>
+      <th>状态</th>
+    </tr>
+    <tr><td>1（单流）</td><td class="num">96</td><td class="num">104</td><td class="num">1</td><td><span class="tag good">基线</span></td></tr>
+    <tr><td>2</td><td class="num">177</td><td class="num">92</td><td class="num">2</td><td>低延迟优先</td></tr>
+    <tr><td>4</td><td class="num">288</td><td class="num">77</td><td class="num">4</td><td>低延迟优先</td></tr>
+    <tr><td>6</td><td class="num">371</td><td class="num">68</td><td class="num">6</td><td>均衡</td></tr>
+    <tr><td>8</td><td class="num">472</td><td class="num">64</td><td class="num">8</td><td><span class="tag good">甜点位</span></td></tr>
+    <tr><td>10</td><td class="num">499</td><td class="num">53</td><td class="num">10</td><td>甜点位</td></tr>
+    <tr><td>12</td><td class="num">587</td><td class="num">52</td><td class="num">12</td><td><span class="tag good">甜点位</span></td></tr>
+    <tr><td>16</td><td class="num">630</td><td class="num">46</td><td class="num">16</td><td>吞吐/延迟折中</td></tr>
+    <tr><td>20</td><td class="num">716</td><td class="num">39</td><td class="num">20</td><td>吞吐优先</td></tr>
+    <tr><td><b>23（并发上限）</b></td><td class="num"><b>774</b></td><td class="num">36</td><td class="num">23</td><td><span class="tag warn">吞吐达峰</span></td></tr>
+  </table>
+
+  <div style="margin-top:16px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:6px">聚合吞吐（tok/s，以 23 路 = 774 为满刻度）</div>
+    <div class="bar-row"><div class="bar-lab">C=1</div><div class="bar-track"><div class="bar-fill" style="width:12%"></div></div><div class="bar-val">96</div></div>
+    <div class="bar-row"><div class="bar-lab">C=2</div><div class="bar-track"><div class="bar-fill" style="width:23%"></div></div><div class="bar-val">177</div></div>
+    <div class="bar-row"><div class="bar-lab">C=4</div><div class="bar-track"><div class="bar-fill" style="width:37%"></div></div><div class="bar-val">288</div></div>
+    <div class="bar-row"><div class="bar-lab">C=6</div><div class="bar-track"><div class="bar-fill" style="width:48%"></div></div><div class="bar-val">371</div></div>
+    <div class="bar-row"><div class="bar-lab">C=8</div><div class="bar-track"><div class="bar-fill" style="width:61%"></div></div><div class="bar-val">472</div></div>
+    <div class="bar-row"><div class="bar-lab">C=10</div><div class="bar-track"><div class="bar-fill" style="width:64%"></div></div><div class="bar-val">499</div></div>
+    <div class="bar-row"><div class="bar-lab">C=12</div><div class="bar-track"><div class="bar-fill" style="width:76%"></div></div><div class="bar-val">587</div></div>
+    <div class="bar-row"><div class="bar-lab">C=16</div><div class="bar-track"><div class="bar-fill" style="width:81%"></div></div><div class="bar-val">630</div></div>
+    <div class="bar-row"><div class="bar-lab">C=20</div><div class="bar-track"><div class="bar-fill" style="width:93%"></div></div><div class="bar-val">716</div></div>
+    <div class="bar-row"><div class="bar-lab">C=23</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">774</div></div>
+  </div>
+  <div class="note">趋势：在真实并发上限（23 路）以内，聚合吞吐随并发近似线性爬升，到 23 路达峰 774 tok/s；单路速度则从 92 递减到 36 tok/s。并发超过 23 时无法同时运行，只会排队，故不再列入。</div>
+  </div>
+
+  <h2>四、关键机制说明（本次调优得到的）</h2>
+  <div class="card">
+    <b>1. 抓图尺寸 = “快”的天花板。</b> 每步 decode 的 batch = 并发路数 × (K+1)，K=5 → 每路占 6 个 token。CUDA 图只覆盖已抓取的档位；超出后退回 eager，会明显变慢。因此要几路并发跑得快，抓图档位就要覆盖到 “并发 × 6”（如 16 路需到 96）。
+    <br><br>
+    <b>2. 只抬并发数不抬抓图 = 反而更慢。</b> 实测：抓图停在 40 时，8/16 路单路只有 ~28 tok/s（掉图）；把抓图放宽到 96 后，8 路回到 ~62、16 路回到 ~47，提升 1.7~2.2×。C=4 前后不变（本来就在图区）。
+    <br><br>
+    <b>3. 并发真正卡点在 ~23 路。</b> 该模型是混合架构（含 mamba/GDN 线性注意力），每条序列即使很短也要占一整块状态 + block-size 1680，导致 KV 池按“块”被吃掉，同时并发封顶约 23，与 max-num-seqs 设多大无关。
+  </div>
+
+  <h2>五、结论与建议</h2>
+  <div class="card">
+    <table>
+      <tr><th style="width:34%">场景</th><th>建议 / 预期</th></tr>
+      <tr><td>追求单请求最快</td><td>单流 decode ~104 tok/s；并发 2~4 时单路仍 77–92 tok/s</td></tr>
+      <tr><td>追求总吞吐最高</td><td>并发 <b>8~16 路</b>，聚合 472~630 tok/s，性价比最高</td></tr>
+      <tr><td>压榨极限吞吐</td><td>并发 20~23，聚合 716~774 tok/s，但单路降到 36–39</td></tr>
+      <tr><td>并发 &gt; 23</td><td>本机物理达不到（同时并发上限 23）；超出只会排队、延迟上升</td></tr>
+      <tr><td>想跑满 256K×N</td><td>KV 只够 ~3.8 路满上下文；长上下文与高并发不可兼得</td></tr>
+    </table>
+    <div class="note">复现命令：<code>python3 ~/bench_c.py &lt;并发&gt; &lt;max_tokens&gt; &lt;轮数&gt;</code>（服务 18430）；真实并发看 <code>GET /metrics → vllm:num_requests_running</code>（日志 10s 采样会低估）。</div>
+  </div>
+
+  <div class="foot">数据来源：2026-09-16 实机压测（msi · 18430 · Qwen3.8-Flash-Next W4A16）· 各档 3 轮取中位</div>
+</div>
+</body>
+</html>
