@@ -11,6 +11,14 @@
 #   CUDA_VISIBLE_DEVICES=0,1
 
 set -e
+
+# ❗❗ 硬性要求：模型盘 read-ahead 必须调到 16 KiB，否则 prefill/decode 与同盘正常读取都跑不动。
+# PLE mmap 是小随机读，内核默认 128 KiB 预读会放大 ~8 倍打爆 NVMe 队列。线上值：getra=32 (=16 KiB)。
+# 持久化（重启不丢）：/etc/udev/rules.d/99-ple-readahead.rules:
+#   ACTION=="add|change", KERNEL=="nvme0n1", ATTR{bdi/read_ahead_kb}="16"
+sudo blockdev --setra 32 /dev/nvme0n1
+[ "$(sudo blockdev --getra /dev/nvme0n1)" = "32" ] || { echo "readahead != 16KiB"; exit 1; }
+
 docker run -d --name qwen-w4a16-pp2 --gpus all \
   -e VLLM_PLE_MMAP=1 -e VLLM_PLE_MMAP_RANDOM=1 \
   -e VLLM_PLE_CPU_OFFLOAD=1 -e VLLM_PLE_GDS=0 \

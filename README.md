@@ -38,7 +38,48 @@ The three env vars that make it work (see [`launch-vllm.sh`](launch-vllm.sh)):
 
 ---
 
-## 一、可复现清单（16 项，逐项实测）
+## 📦 Provenance — how to actually install this (nothing private)
+
+Every piece below is public. Our image contains **no private patches** — we verified the core files are byte-identical to the public repo (md5):
+
+| Piece | Where to get it |
+|---|---|
+| vLLM runtime ("the fork") | Public community project [`nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX`](https://github.com/nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX). Our `qwen-flash-sm80:0.1.4` is exactly that repo's `Dockerfile`, built 2026-09-12. Core files `src/vllm_ple_mmap.py` · `scripts/apply-overlay.py` · `patches/source-origins.json` are **md5-identical to current public main**. |
+| Base image | Pinned inside their Dockerfile: `vllm/vllm-openai:qwen38-flash-next@sha256:fc120ece0a388cc0aa1caad4a9f1cd92113484ab7ec2fd0efadd62585be05bf8` (public) |
+| Model checkpoint | Hugging Face / ModelScope [`Intel/Qwen3.8-Flash-Next-W4A16-AutoRound`](https://huggingface.co/Intel/Qwen3.8-Flash-Next-W4A16-AutoRound) — **Intel's public model, not built or quantized by us**. Downloaded with `aria2` from ModelScope (download log URL carries `namespace=Intel`); **no local quantization / conversion step of any kind** — on the mmap path the checkpoint is used exactly as published. |
+| Card unlock (BAR1 etc.) | [`bayley/cmpunlocker`](https://github.com/bayley/cmpunlocker) — and note our run **does not even need working GPU P2P** (topo = PHB, `p2p = GNS`) |
+
+```bash
+git clone https://github.com/nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX
+cd Qwen-Flash-SM80-170HX && docker build -t qwen-flash-sm80:local .
+# then edit paths in this repo's launch-vllm.sh and run it
+```
+
+**What differs vs the community deployment guide**: model = W4A16 AutoRound (not NVFP4); PLE path = `mmap` demand-paging with `VLLM_PLE_GDS=0` (not GDS); works **without GPU P2P and without 96 GB RAM**; plus the **mandatory 16 KiB disk read-ahead below — which neither guide mentions**.
+
+---
+
+## ⚠️ Mandatory: set the model disk read-ahead to **16 KiB** — do not skip this
+
+```bash
+sudo blockdev --setra 32 /dev/nvme0n1     # 32 × 512 B = 16 KiB  (kernel default is 128 KiB)
+blockdev --getra /dev/nvme0n1             # must print 32
+```
+
+The PLE `mmap` path issues many small **random** reads against the model disk. At the kernel default 128 KiB read-ahead every page fault over-fetches ~8×, flooding the NVMe queue — **prefill / decode, and normal reads on the same disk, all stop running properly.** Our live box runs `getra = 32` (16 KiB) on `/dev/nvme0n1` (the disk holding `/mnt/data`).
+
+Persist it across reboots (a reboot silently reverts to 128 KiB — this bit us):
+
+```bash
+printf 'ACTION=="add|change", KERNEL=="nvme0n1", ATTR{bdi/read_ahead_kb}="16"\n' | sudo tee /etc/udev/rules.d/99-ple-readahead.rules
+sudo udevadm control --reload && sudo udevadm trigger
+```
+
+> **If your numbers look terrible, check read-ahead first.** No guide — ours or the community's — mentions this parameter.
+
+---
+
+## 一、可复现清单（17 项，逐项实测）
 
 | # | 项目 | 实测值 | 出处 |
 |---|---|---|---|
@@ -58,6 +99,7 @@ The three env vars that make it work (see [`launch-vllm.sh`](launch-vllm.sh)):
 | 14 | **单路 tok/s** | **104**（c=1，同 prompt 隔离 decode） | 并发报告 |
 | 15 | **aggregate tok/s** | **774** @ c=23 | 并发报告 |
 | 16 | **prefill tok/s** | 单请求峰值 **6.3K**，2 路聚合 **7.3K** tok/s | speedtest 日志 |
+| 17 | **磁盘预读（硬性要求）** | 模型盘 read-ahead 必须调至 **16 KiB**（`blockdev --setra 32`；默认 128 KiB 时 prefill/decode 与同盘正常读取都跑不动） | `blockdev --getra` = 32 |
 
 启动方式：[`launch-vllm.sh`](launch-vllm.sh)（docker + 完整 `vllm serve` 命令行）。
 

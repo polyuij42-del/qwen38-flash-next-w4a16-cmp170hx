@@ -33,7 +33,20 @@ The <b>169 GB model (incl. ~102 GB PLE table) barely touches RAM</b> — served 
 Community contrast: <b>47.7 GB pinned sidecar + 96 GB RAM</b> → <span class="win">this reproduces on 1/3 the memory, on a home PC</span>.
 </div>
 
-<h2>一、16 项可复现清单（逐项实测）</h2>
+<div class="card" style="background:#FCEBEB;border-color:#F5B5B5">
+<b style="color:#A32D2D;font-size:15px">⚠️ 硬性要求：模型盘 read-ahead 必须调到 16 KiB</b><br>
+<code>sudo blockdev --setra 32 /dev/nvme0n1</code>（32×512B=16 KiB，内核默认 128 KiB；实测值 <code>getra=32</code>）。
+PLE <code>mmap</code> 是小随机读，默认 128 KiB 预读会 ~8× 放大打爆 NVMe 队列，<b>prefill / decode 与同盘正常读取全都跑不动</b>。
+重启会掉回默认值，需 udev 持久化（<code>ATTR{bdi/read_ahead_kb}="16"</code>）。<span class="hl">无论我方还是社区文档都没提这个参数——数字难看先查它。</span>
+</div>
+
+<div class="card">
+<b>📦 来源核实（零私有补丁，可独立核对）</b><br>
+运行时"fork" = 公开社区仓库 <code>nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX</code> 的 Dockerfile（2026-09-12 构建）；核心补丁文件 <code>vllm_ple_mmap.py</code> / <code>apply-overlay.py</code> / <code>source-origins.json</code> <b>md5 与公开 main 完全一致</b>。<br>
+基模 = <b>公开 Intel 模型</b> <code>Qwen3.8-Flash-Next-W4A16-AutoRound</code>，<b>与我方无关、非自制</b>；用 aria2 从 ModelScope 下载（日志 URL <code>namespace=Intel</code> 为证），<b>无任何本地转换步骤</b>。
+</div>
+
+<h2>一、17 项可复现清单（逐项实测）</h2>
 <div class="card"><table>
 <tr><th>项目</th><th>实测值</th></tr>
 <tr><td>GPU 型号</td><td>2× NVIDIA CMP 170HX 64GB（GA100 矿卡）</td></tr>
@@ -52,6 +65,7 @@ Community contrast: <b>47.7 GB pinned sidecar + 96 GB RAM</b> → <span class="w
 <tr><td>单路 tok/s</td><td>104</td></tr>
 <tr><td>aggregate tok/s</td><td>774 @ c=23</td></tr>
 <tr><td>prefill tok/s</td><td>单请求峰值 6.3K · 2 路聚合 7.3K</td></tr>
+<tr><td>磁盘预读（硬性要求）</td><td><b>16 KiB</b>（<code>blockdev --setra 32 /dev/nvme0n1</code>；默认 128 KiB 时 prefill/decode 跑不动）</td></tr>
 </table></div>
 
 <h2>二、MTP K 值调优（单流，同 block 4848）</h2>

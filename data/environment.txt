@@ -36,6 +36,22 @@ $ 容器内各 vllm 进程 PSS（smaps_rollup）合计 ≈ 11.3 GiB
 # 模型目录 169G（含 PLE 表 102G）走 NVMe mmap，按需换页，非 pinned。
 # 加载峰值 RSS ~20 GiB 级，常态 RSS ~10 GiB 级；PLE 表大部分留在盘上不进 RAM。
 
+## 磁盘预读（硬性要求，16 KiB）
+$ sudo blockdev --getra /dev/nvme0n1
+32            # 32 × 512B = 16 KiB（内核默认 256 = 128 KiB）
+# /dev/nvme0n1 = /mnt/data 所在 NVMe（模型盘）。PLE mmap 是小随机读，
+# 默认 128 KiB 预读会 ~8x 放大打爆 NVMe 队列：prefill/decode 与同盘正常读取都跑不动。
+# 重启会回到默认值，需 udev 持久化：
+#   /etc/udev/rules.d/99-ple-readahead.rules:
+#   ACTION=="add|change", KERNEL=="nvme0n1", ATTR{bdi/read_ahead_kb}="16"
+
+## 模型/运行时来源（零私有补丁，可核对）
+- checkpoint: aria2 下载自 ModelScope Intel/Qwen3.8-Flash-Next-W4A16-AutoRound（见 ~/aria2-loop.log 的 lfs URL namespace=Intel），无本地转换步骤
+- 运行时镜像 qwen-flash-sm80:0.1.4: 由公开仓库 github.com/nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX 的 Dockerfile 于 2026-09-12 构建；
+  核心文件 md5 与公开 main 一致：src/vllm_ple_mmap.py=9a642a938e7a8e68682027f610537c7c、
+  patches/source-origins.json=7825504f8dd223d4379fcc57c99bd3ad、scripts/apply-overlay.py=f1ba51391f500194d7abaaa33bb06205
+- 基础镜像（对方 Dockerfile 内 pin）: vllm/vllm-openai:qwen38-flash-next@sha256:fc120ece0a388cc0aa1caad4a9f1cd92113484ab7ec2fd0efadd62585be05bf8
+
 ## PLE offload 关键 env（决定低 RAM）
 VLLM_PLE_MMAP=1
 VLLM_PLE_MMAP_RANDOM=1
