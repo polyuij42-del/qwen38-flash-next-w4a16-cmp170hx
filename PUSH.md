@@ -8,7 +8,7 @@ git add -A
 git commit -m "Qwen3.8-Flash-Next W4A16 on 2x CMP 170HX: benchmarks + env"
 
 # 在 GitHub 先建一个空仓库（名字与下面一致），然后：
-git remote add origin git@github.com:<你的用户名>/Qwen3.8-Flash-Next-on-2x-CMP-170HX-128GB-110-tok-s-Decode-7K-Prefill-800-tok-s-23-Concurrent.git
+git remote add origin git@github.com:polyuij42-del/qwen38-flash-next-w4a16-cmp170hx.git
 git branch -M main
 git push -u origin main
 ```
