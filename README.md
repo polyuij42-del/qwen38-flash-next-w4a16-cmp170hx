@@ -33,6 +33,7 @@
 
 The three env vars that make it work (see [`launch-vllm.sh`](launch-vllm.sh)):
 `VLLM_PLE_MMAP=1` · `VLLM_PLE_MMAP_RANDOM=1` · `VLLM_PLE_CPU_OFFLOAD=1`.
+(`VLLM_PLE_MMAP_RANDOM=1` is the value our published numbers were measured with. Since 2026-09-16 the live box runs `=0` instead — with the 16 KiB disk read-ahead already in place the two settings measured identical, so either works; `=1` is the safer default if your disk read-ahead is not pinched.)
 ⇒ **An ordinary home PC with 38 GB RAM runs the 169 GB W4A16 model** — this is the result most worth independently verifying.
 (`docker stats` measured: **15.6 GiB / 38 GiB = 41%**; the community build needs ~96 GB RAM.)
 

@@ -7,6 +7,8 @@
 #   VLLM_PLE_MMAP=1            # PLE(n-gram 增强嵌入)表走 NVMe mmap，按需换页，不常驻 RAM
 #   VLLM_PLE_MMAP_RANDOM=1     # PLE 表 mmap 标 MADV_RANDOM 关内核预读 —— ⚠️ 该开关由
 #                              #   patched/vllm_ple_mmap.py 提供，镜像原版**不认识**这个 env
+#                              #   （线上 2026-09-16 起实跑 =0：整盘预读已固定 16 KiB，
+#                              #    实测 0/1 无速度差；=1 更保险，两者都能用）
 #   VLLM_PLE_CPU_OFFLOAD=1     # PLE 层放 CPU 侧（非 pinned）
 #   VLLM_PLE_GDS=0             # 不启用 GPUDirect Storage（GDS 与 mmap 源码互斥）
 #   CUDA_VISIBLE_DEVICES=0,1

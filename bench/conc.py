@@ -20,9 +20,9 @@ import threading
 import time
 import urllib.request
 
-BASE = os.environ.get("SWEEP_BASE", "http://127.0.0.1:18420")
-SWEEP_DIR = os.environ.get("SWEEP_DIR", "/home/poly/mtp-sweep")
-MODEL = os.environ.get("SWEEP_MODEL", "qwen3.8-flash-next")
+BASE = os.environ.get("SWEEP_BASE", "http://127.0.0.1:18430")   # 本仓库的 W4A16 服务端口
+SWEEP_DIR = os.environ.get("SWEEP_DIR", os.path.dirname(os.path.abspath(__file__)))  # 默认取本脚本目录下的 prompts.json
+MODEL = os.environ.get("SWEEP_MODEL", "qwen3.8-flash-next-w4a16")   # 实际会从 /v1/models 自动识别覆盖
 CONCS = [int(x) for x in (sys.argv[1].split(",") if len(sys.argv) > 1 else ["1", "2", "4", "8"])]
 ROUNDS = int(sys.argv[2]) if len(sys.argv) > 2 else 3
 MAX_TOKENS = int(sys.argv[3]) if len(sys.argv) > 3 else 700

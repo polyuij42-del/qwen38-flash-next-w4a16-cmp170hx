@@ -45,18 +45,21 @@ $ sudo blockdev --getra /dev/nvme0n1
 #   /etc/udev/rules.d/99-ple-readahead.rules:
 #   ACTION=="add|change", KERNEL=="nvme0n1", ATTR{bdi/read_ahead_kb}="16"
 
-## 模型/运行时来源（零私有补丁，可核对）
+## 模型/运行时来源（镜像构建零私有补丁，可核对）
 - checkpoint: aria2 下载自 ModelScope Intel/Qwen3.8-Flash-Next-W4A16-AutoRound（见 ~/aria2-loop.log 的 lfs URL namespace=Intel），无本地转换步骤
 - 运行时镜像 qwen-flash-sm80:0.1.4: 由公开仓库 github.com/nguyenthimy2022kg-alt/Qwen-Flash-SM80-170HX 的 Dockerfile 于 2026-09-12 构建；
   核心文件 md5 与公开 main 一致：src/vllm_ple_mmap.py=9a642a938e7a8e68682027f610537c7c、
   patches/source-origins.json=7825504f8dd223d4379fcc57c99bd3ad、scripts/apply-overlay.py=f1ba51391f500194d7abaaa33bb06205
 - 基础镜像（对方 Dockerfile 内 pin）: vllm/vllm-openai:qwen38-flash-next@sha256:fc120ece0a388cc0aa1caad4a9f1cd92113484ab7ec2fd0efadd62585be05bf8
+- ⚠️ 以上"零私有补丁"仅指**镜像构建**（镜像内文件 = 公开 main）。**部署层另叠了 3 个运行时只读覆盖**（本仓库 `patched/` 与 `pp-partition-fix/`，README「Runtime patch overrides」已列 md5），三份都与镜像原版不同：vllm_ple_mmap.py 改 61 行（BF16/F16 透传 + MADV_RANDOM）、ep_weight_filter.py 改 13 行（mmap 模式跳过 PLE 分片）、distributed/utils.py 改 18 行（段数≠pp_size 回退）。其中后两个文件在公开仓库里不存在。
 
 ## PLE offload 关键 env（决定低 RAM）
 VLLM_PLE_MMAP=1
 VLLM_PLE_MMAP_RANDOM=1
 VLLM_PLE_CPU_OFFLOAD=1
 VLLM_PLE_GDS=0
+# 注：MMAP_RANDOM 线上实际值自 2026-09-16 02:09 起被 systemd drop-in 覆盖为 0
+# （整盘 read_ahead_kb 已固定 16 KiB，实测 0/1 与 1 无速度差）；launch-vllm.sh 里给的 1 更保险。
 
 ## 软件栈版本（容器内 import 实测）
 vllm    0.1.dev20073+g8e685d198   # fork，commit g8e685d198；镜像 qwen-flash-sm80:0.1.4
