@@ -263,6 +263,33 @@ python3 bench/parse13.py data/raw-13.jsonl
 
 ---
 
+## 九、能力评测：LLST 102 题标准体检（xhigh vs 截断版）
+
+速度之外，本机也跑了一遍 [Local LLM Standard Test (LLST) v1.0](https://github.com/yang2020chen/local-llm-standard-test)——**102 道锁定题目**（MMLU-Pro 42 / IFEval 20 / AIME24 10 / C-EVAL 20 / LiveCodeBench 10）+ 4 档长上下文性能（512 / 4096 / 16384 / 28672）。同一模型跑了两轮，**唯一变量是思考强度**：
+
+| 子项 | 题量 | 第一轮（未设思考强度） | 第二轮（`reasoning_effort=xhigh`） | 变化 |
+|---|---:|---:|---:|---:|
+| MMLU-Pro | 42 | 0.8095 | **0.9048** | +9.5pp |
+| IFEval | 20 / 19 | 0.7000 | **0.9474** | +24.7pp |
+| AIME24 | 10 | 0.3000 | **0.8000** | **+50.0pp** |
+| C-EVAL | 20 | 0.8500 | **0.9500** | +10.0pp |
+| LiveCodeBench | 10 | 0.7000 | **1.0000** | **+30.0pp** |
+| **综合（等权）** | 102 | **67.2** | **92.0** | **+24.8** |
+
+**根因不是模型变聪明，而是 `max_tokens` 截断**：第一轮有 **22/102** 道题的推理链被砍断（AIME24 高达 7/10），答案字段为空自然判 0；第二轮按题型放宽额度（AIME24 32768 / LiveCodeBench 24576 / IFEval 8192）后截断降到 **3/102**，分数才回到真实水平。这也再次印证第七节第 8 条：`reasoning_effort` 合法值只有 **xhigh / medium / low**，没有 `high`。
+
+⚠️ **速度指标准读法**：LLST 报表的 `output_throughput_tps` 是**端到端平均**（输出 token ÷（TTFT + 解码）），512 档显示 108.6 而非监控上的 ~147 tok/s。**真实单请求解码速度 = 1/TPOT**，本轮实测 61～125 tok/s（512 档 125 tok/s，MTP-5 接受率 74.8%），与监控一致。本节数字是**带负载顺带测的**，不是空载峰值；第一节的 104 tok/s 单流解码是空载专项测试。
+
+完整对比报告（含长图、交互仪表盘、逐题截断统计、原始汇总）：**[`results/llst/`](results/llst/README.md)**
+
+```bash
+# 复现（Mac 端一键驱动，也可直接调 remote 上的 scripts/run_standard_test.sh）
+llst run --force          # 跑全量 102 题
+llst report latest        # 生成对比仪表盘
+```
+
+---
+
 ## 文件清单
 
 | 文件 | 内容 |
@@ -278,7 +305,8 @@ python3 bench/parse13.py data/raw-13.jsonl
 | `data/13-scenario-table.tsv` · `raw-13.jsonl` | 13 场景速度与原始记录 |
 | `bench/` | `conc.py` / `prefill_probe.py` / `parse13.py` / `prompts.json` |
 | `results/` | MTP+block 全量报告、并发性能报告、全表格 |
+| `results/llst/` | LLST 102 题能力体检（xhigh vs 截断版）：对比报告、长图、仪表盘、逐题截断统计、原始汇总 |
 
 ---
 
-*实测平台：msi · Ubuntu 26.04 · kernel 7.0.0-30 · 2× CMP 170HX 64GB · vLLM fork。数据日期 2026-09-15 ~ 09-16。*
+*实测平台：msi · Ubuntu 26.04 · kernel 7.0.0-30 · 2× CMP 170HX 64GB · vLLM fork。性能数据日期 2026-09-15 ~ 09-16；LLST 能力数据日期 2026-09-18。*

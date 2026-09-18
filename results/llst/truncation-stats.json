@@ -1,0 +1,28 @@
+{
+  "metric": "count of predictions with choices[0].stop_reason == 'max_tokens'",
+  "generated": "2026-09-18",
+  "runs": {
+    "20260918_074107": {
+      "label": "round 1 — reasoning_effort unset (truncated)",
+      "per_benchmark": {
+        "mmlu_pro": {"questions": 42, "truncated": 6},
+        "ifeval": {"questions": 20, "truncated": 4},
+        "aime24": {"questions": 10, "truncated": 7},
+        "ceval": {"questions": 20, "truncated": 2},
+        "live_code_bench": {"questions": 10, "truncated": 3}
+      },
+      "total": {"questions": 102, "truncated": 22}
+    },
+    "20260918_110933": {
+      "label": "round 2 — reasoning_effort=xhigh",
+      "per_benchmark": {
+        "mmlu_pro": {"questions": 42, "truncated": 1},
+        "ifeval": {"questions": 20, "truncated": 0},
+        "aime24": {"questions": 10, "truncated": 2},
+        "ceval": {"questions": 20, "truncated": 0},
+        "live_code_bench": {"questions": 10, "truncated": 0}
+      },
+      "total": {"questions": 102, "truncated": 3}
+    }
+  }
+}
