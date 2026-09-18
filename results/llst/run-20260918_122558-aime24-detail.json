@@ -1,0 +1,102 @@
+{
+  "run_id": "20260918_122558_aime65536",
+  "benchmark": "aime24",
+  "reasoning_effort": "xhigh",
+  "max_tokens": 65536,
+  "score": 0.9,
+  "correct": 9,
+  "questions": 10,
+  "truncated": 1,
+  "per_question": [
+    {
+      "q": 1,
+      "stop_reason": "stop",
+      "reasoning_tokens": 671,
+      "total_tokens": 1700,
+      "target": "\\boxed{204}",
+      "extracted_prediction": "204",
+      "acc": 1.0
+    },
+    {
+      "q": 2,
+      "stop_reason": "stop",
+      "reasoning_tokens": 32917,
+      "total_tokens": 33974,
+      "target": "\\boxed{113}",
+      "extracted_prediction": "113",
+      "acc": 1.0
+    },
+    {
+      "q": 3,
+      "stop_reason": "stop",
+      "reasoning_tokens": 13298,
+      "total_tokens": 14288,
+      "target": "\\boxed{371}",
+      "extracted_prediction": "371",
+      "acc": 1.0
+    },
+    {
+      "q": 4,
+      "stop_reason": "max_tokens",
+      "reasoning_tokens": 65528,
+      "total_tokens": 65697,
+      "target": "\\boxed{385}",
+      "extracted_prediction": "",
+      "acc": 0.0
+    },
+    {
+      "q": 5,
+      "stop_reason": "stop",
+      "reasoning_tokens": 20526,
+      "total_tokens": 21604,
+      "target": "\\boxed{110}",
+      "extracted_prediction": "110",
+      "acc": 1.0
+    },
+    {
+      "q": 6,
+      "stop_reason": "stop",
+      "reasoning_tokens": 6044,
+      "total_tokens": 7070,
+      "target": "\\boxed{104}",
+      "extracted_prediction": "104",
+      "acc": 1.0
+    },
+    {
+      "q": 7,
+      "stop_reason": "stop",
+      "reasoning_tokens": 12834,
+      "total_tokens": 13673,
+      "target": "\\boxed{721}",
+      "extracted_prediction": "721",
+      "acc": 1.0
+    },
+    {
+      "q": 8,
+      "stop_reason": "stop",
+      "reasoning_tokens": 1520,
+      "total_tokens": 1851,
+      "target": "\\boxed{25}",
+      "extracted_prediction": "25",
+      "acc": 1.0
+    },
+    {
+      "q": 9,
+      "stop_reason": "stop",
+      "reasoning_tokens": 3071,
+      "total_tokens": 3967,
+      "target": "\\boxed{809}",
+      "extracted_prediction": "809",
+      "acc": 1.0
+    },
+    {
+      "q": 10,
+      "stop_reason": "stop",
+      "reasoning_tokens": 663,
+      "total_tokens": 1186,
+      "target": "\\boxed{116}",
+      "extracted_prediction": "116",
+      "acc": 1.0
+    }
+  ]
+}

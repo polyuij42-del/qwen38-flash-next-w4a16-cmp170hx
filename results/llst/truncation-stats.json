@@ -3,7 +3,7 @@
   "generated": "2026-09-18",
   "runs": {
     "20260918_074107": {
-      "label": "round 1 — reasoning_effort unset (truncated)",
+      "label": "round 1 — reasoning_effort unset, small max_tokens (heavily truncated)",
       "per_benchmark": {
         "mmlu_pro": {"questions": 42, "truncated": 6},
         "ifeval": {"questions": 20, "truncated": 4},
@@ -14,7 +14,7 @@
       "total": {"questions": 102, "truncated": 22}
     },
     "20260918_110933": {
-      "label": "round 2 — reasoning_effort=xhigh",
+      "label": "round 2 — reasoning_effort=xhigh (full 102-question run)",
       "per_benchmark": {
         "mmlu_pro": {"questions": 42, "truncated": 1},
         "ifeval": {"questions": 20, "truncated": 0},
@@ -23,6 +23,18 @@
         "live_code_bench": {"questions": 10, "truncated": 0}
       },
       "total": {"questions": 102, "truncated": 3}
+    },
+    "20260918_122558_aime65536": {
+      "label": "round 3 — aime24 only, reasoning_effort=xhigh, max_tokens raised 32768 -> 65536",
+      "note": "single-benchmark re-run; the other four benchmarks were not re-executed",
+      "per_benchmark": {
+        "aime24": {"questions": 10, "truncated": 1}
+      },
+      "total": {"questions": 10, "truncated": 1}
     }
+  },
+  "aime24_truncation_ceiling": {
+    "observation": "With 65536 the longest question still hit the cap at 65528 reasoning tokens and emitted no answer, scoring 0. The other nine questions used 663-32917 reasoning tokens.",
+    "implication": "AIME24 under xhigh has a very long tailed reasoning-length distribution; a single question exceeds 65K tokens."
   }
 }
