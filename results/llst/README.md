@@ -129,7 +129,9 @@
 
 | 文件 | 内容 |
 |---|---|
-| `results/llst/llst-report-xhigh-vs-truncated.png` | 完整对比仪表盘长图（2320×3388，含五维雷达、分项对比、双轴 TTFT/吞吐、报告全文） |
+| `results/llst/llst-report-three-rounds.png` | **三轮完整报告长图（推荐先看这张）**（2320×8418，含 KPI、五子项对比、AIME24 上限梯度、推理长度长尾、截断统计、配置、性能双图） |
+| `results/llst/dashboard-three-rounds.html` | 上面对应长图的源 HTML（自包含，Chart.js 已内联，离线可开） |
+| `results/llst/llst-report-xhigh-vs-truncated.png` | 前两轮对比仪表盘长图（2320×3388，含五维雷达、分项对比、双轴 TTFT/吞吐、报告全文） |
 | `results/llst/dashboard-xhigh-vs-truncated.html` | 自包含交互仪表盘（Chart.js 已内联，离线可开；可切换两轮、显示与上一轮的差值） |
 | `results/llst/run-20260918_110933-capability.json` | 第二轮（xhigh）能力分汇总（原始） |
 | `results/llst/run-20260918_110933-performance.json` | 第二轮（xhigh）性能分档汇总（原始） |

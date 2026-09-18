@@ -315,7 +315,7 @@ llst report latest        # 生成对比仪表盘
 | `data/13-scenario-table.tsv` · `raw-13.jsonl` | 13 场景速度与原始记录 |
 | `bench/` | `conc.py` / `prefill_probe.py` / `parse13.py` / `prompts.json` |
 | `results/` | MTP+block 全量报告、并发性能报告、全表格 |
-| `results/llst/` | LLST 102 题能力体检（xhigh vs 截断版）：对比报告、长图、仪表盘、逐题截断统计、原始汇总 |
+| `results/llst/` | LLST 102 题能力体检（三轮：截断版 / xhigh / AIME24 追测）：**三轮完整报告长图**、交互仪表盘、逐题截断统计、原始汇总 |
 
 ---
 
