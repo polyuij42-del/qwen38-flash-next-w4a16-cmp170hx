@@ -1,0 +1,104 @@
+{
+  "run_id": "20260918_131858",
+  "benchmark": "aime24",
+  "reasoning_effort": "xhigh",
+  "max_tokens": 250000,
+  "score": 1.0,
+  "correct": 10,
+  "questions": 10,
+  "truncated": 0,
+  "reasoning_tokens_total": 199397,
+  "note": "Unlimited-cap round. Q4 needed 94579 reasoning tokens and finally answered correctly; it was truncated at both 32768 and 65536 in earlier rounds.",
+  "per_question": [
+    {
+      "q": 1,
+      "stop_reason": "stop",
+      "reasoning_tokens": 728,
+      "total_tokens": 1788,
+      "target": "\\boxed{204}",
+      "extracted_prediction": "204",
+      "acc": 1.0
+    },
+    {
+      "q": 2,
+      "stop_reason": "stop",
+      "reasoning_tokens": 26306,
+      "total_tokens": 27434,
+      "target": "\\boxed{113}",
+      "extracted_prediction": "113",
+      "acc": 1.0
+    },
+    {
+      "q": 3,
+      "stop_reason": "stop",
+      "reasoning_tokens": 12465,
+      "total_tokens": 13406,
+      "target": "\\boxed{371}",
+      "extracted_prediction": "371",
+      "acc": 1.0
+    },
+    {
+      "q": 4,
+      "stop_reason": "stop",
+      "reasoning_tokens": 94579,
+      "total_tokens": 95762,
+      "target": "\\boxed{385}",
+      "extracted_prediction": "385",
+      "acc": 1.0
+    },
+    {
+      "q": 5,
+      "stop_reason": "stop",
+      "reasoning_tokens": 22001,
+      "total_tokens": 23247,
+      "target": "\\boxed{110}",
+      "extracted_prediction": "110",
+      "acc": 1.0
+    },
+    {
+      "q": 6,
+      "stop_reason": "stop",
+      "reasoning_tokens": 4410,
+      "total_tokens": 5616,
+      "target": "\\boxed{104}",
+      "extracted_prediction": "104",
+      "acc": 1.0
+    },
+    {
+      "q": 7,
+      "stop_reason": "stop",
+      "reasoning_tokens": 34578,
+      "total_tokens": 35957,
+      "target": "\\boxed{721}",
+      "extracted_prediction": "721",
+      "acc": 1.0
+    },
+    {
+      "q": 8,
+      "stop_reason": "stop",
+      "reasoning_tokens": 1524,
+      "total_tokens": 1911,
+      "target": "\\boxed{25}",
+      "extracted_prediction": "25",
+      "acc": 1.0
+    },
+    {
+      "q": 9,
+      "stop_reason": "stop",
+      "reasoning_tokens": 2254,
+      "total_tokens": 3294,
+      "target": "\\boxed{809}",
+      "extracted_prediction": "809",
+      "acc": 1.0
+    },
+    {
+      "q": 10,
+      "stop_reason": "stop",
+      "reasoning_tokens": 552,
+      "total_tokens": 1140,
+      "target": "\\boxed{116}",
+      "extracted_prediction": "116",
+      "acc": 1.0
+    }
+  ]
+}

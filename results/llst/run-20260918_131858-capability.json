@@ -1,0 +1,30 @@
+{
+  "model": "qwen3.8-flash-next-w4a16",
+  "protocol_version": "1.0",
+  "benchmarks": {
+    "aime24": {
+      "score": 1.0,
+      "num_samples": 10
+    },
+    "mmlu_pro": {
+      "score": 0.881,
+      "num_samples": 42
+    },
+    "ceval": {
+      "score": 0.95,
+      "num_samples": 20
+    },
+    "ifeval": {
+      "score": 0.8947,
+      "num_samples": 19
+    },
+    "live_code_bench": {
+      "score": 1.0,
+      "num_samples": 10
+    }
+  },
+  "execution_manifest": {
+    "path": "capability/execution_manifest.json",
+    "sha256": "b83550482c079db0de290b3e909a17b6319e50cb4de2ed2fb5c10078b8739f35"
+  }
+}

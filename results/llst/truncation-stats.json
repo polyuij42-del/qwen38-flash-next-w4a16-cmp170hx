@@ -31,10 +31,30 @@
         "aime24": {"questions": 10, "truncated": 1}
       },
       "total": {"questions": 10, "truncated": 1}
+    },
+    "20260918_131858": {
+      "label": "round 4 — full 102-question run, reasoning_effort=xhigh, max_tokens=250000 (unlimited)",
+      "note": "no per-benchmark max_tokens overrides, so the cap cannot bind anywhere. Runtime 62m20s.",
+      "per_benchmark": {
+        "mmlu_pro": {"questions": 42, "truncated": 0},
+        "ifeval": {"questions": 20, "truncated": 0},
+        "aime24": {"questions": 10, "truncated": 0},
+        "ceval": {"questions": 20, "truncated": 0},
+        "live_code_bench": {"questions": 10, "truncated": 0}
+      },
+      "total": {"questions": 102, "truncated": 0}
     }
   },
-  "aime24_truncation_ceiling": {
-    "observation": "With 65536 the longest question still hit the cap at 65528 reasoning tokens and emitted no answer, scoring 0. The other nine questions used 663-32917 reasoning tokens.",
-    "implication": "AIME24 under xhigh has a very long tailed reasoning-length distribution; a single question exceeds 65K tokens."
+  "aime24_reasoning_length": {
+    "ladder": {
+      "cap_small": {"score": 0.3, "truncated": 7},
+      "cap_32768": {"score": 0.8, "truncated": 2},
+      "cap_65536": {"score": 0.9, "truncated": 1},
+      "cap_250000": {"score": 1.0, "truncated": 0}
+    },
+    "per_question_reasoning_tokens_round4": [728, 26306, 12465, 94579, 22001, 4410, 34578, 1524, 2254, 552],
+    "total_reasoning_tokens_round4": 199397,
+    "median_reasoning_tokens": 8438,
+    "observation": "Question 4 (target 385) needs 94579 reasoning tokens. It was cut off at 32768 (round 2) and again at 65536 (round 3), emitting no answer and scoring 0 both times; at 250000 it finished and was correct. It alone accounts for 47% of AIME24's reasoning budget in round 4, so the distribution is heavily long-tailed -- a global cap large enough to cover it is wasteful for the other nine questions."
   }
 }

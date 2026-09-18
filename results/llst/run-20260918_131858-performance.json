@@ -1,0 +1,38 @@
+{
+  "model": "qwen3.8-flash-next-w4a16",
+  "protocol_version": "1.0",
+  "cases": [
+    {
+      "case": "isl_16384_osl_512",
+      "avg_ttft_ms": 9241.41,
+      "avg_tpot_ms": 11.43,
+      "output_throughput_tps": 33.9486,
+      "spec_accept_rate": 0.6798
+    },
+    {
+      "case": "isl_28672_osl_512",
+      "avg_ttft_ms": 30194.43,
+      "avg_tpot_ms": 10.17,
+      "output_throughput_tps": 14.4656,
+      "spec_accept_rate": 0.7149
+    },
+    {
+      "case": "isl_4096_osl_512",
+      "avg_ttft_ms": 1921.45,
+      "avg_tpot_ms": 8.74,
+      "output_throughput_tps": 80.1526,
+      "spec_accept_rate": 0.7163
+    },
+    {
+      "case": "isl_512_osl_512",
+      "avg_ttft_ms": 514.92,
+      "avg_tpot_ms": 10.97,
+      "output_throughput_tps": 83.6328,
+      "spec_accept_rate": 0.675
+    }
+  ],
+  "execution_manifest": {
+    "path": "performance/execution_manifest.json",
+    "sha256": "32f17a54b8f537b7cc9a3e2b07925dfd816bd0fa2c96d267626511caa7edde98"
+  }
+}

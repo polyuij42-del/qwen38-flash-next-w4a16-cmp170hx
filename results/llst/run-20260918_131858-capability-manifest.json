@@ -1,0 +1,238 @@
+{
+  "manifest_sha256": "e8600599e166268c6f22f521f16ae52e396c5156cb8824a0f4a1ddbec4b0c331",
+  "resolved_samples_sha256": "a670cda807b00ca821afee715013165ea48574f60249f445be7f6e410cb3d4ef",
+  "executed_samples_sha256": "a670cda807b00ca821afee715013165ea48574f60249f445be7f6e410cb3d4ef",
+  "total_executed": 102,
+  "smoke": false,
+  "generation_defaults": {
+    "temperature": 0.0,
+    "max_tokens": 250000,
+    "stream": true,
+    "extra_body": {
+      "reasoning_effort": "xhigh"
+    }
+  },
+  "per_benchmark_generation": {},
+  "benchmarks": {
+    "mmlu_pro": 42,
+    "ifeval": 20,
+    "aime24": 10,
+    "ceval": 20,
+    "live_code_bench": 10
+  },
+  "prediction_files": [
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_biology.jsonl",
+      "sha256": "b14b0aa1dd3cffd446d484b0d5d3321dbce804182243b342e83a5855112ead6c",
+      "bytes": 30232
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_business.jsonl",
+      "sha256": "736769fdf5efd65a71f73900e8380b196d89f1b9eb988bc18b410909b6b5d06e",
+      "bytes": 36462
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_chemistry.jsonl",
+      "sha256": "ef05a5c8b6f586d0f46950167809964f90ebd95b13a1f29f8192b7988fa5d753",
+      "bytes": 25711
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_computer science.jsonl",
+      "sha256": "e34a383161fc9562901350fca475c767008f991f681a2f9c3ea8eacb5001d73c",
+      "bytes": 25791
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_economics.jsonl",
+      "sha256": "ec34071067e893fcc8634110b70ab321ddec680d97db809ece5689450d3ef6b4",
+      "bytes": 33444
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_engineering.jsonl",
+      "sha256": "d73485555696dc4ef92d22d7ad5318e4ce61217ae214794e4465c1970b2a5a23",
+      "bytes": 19159
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_health.jsonl",
+      "sha256": "cc9fde5f9c2e19e14300cfe41ce101e3349081fdf222817a0cc6e702eac7a3a3",
+      "bytes": 60368
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_history.jsonl",
+      "sha256": "202c893716988f29ad3b8ba5e8d7e8c08dc1082a8745a7c3cccb7447d8c19aca",
+      "bytes": 42870
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_law.jsonl",
+      "sha256": "81b6fc76eeebea8cc112b4862641d0c0cff5e6b5ba766dc508d580cf8497e244",
+      "bytes": 417732
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_math.jsonl",
+      "sha256": "1eb0b1c3c98cf644e74b8d5c1f607910b30372fef02328197a05f0f77e01e937",
+      "bytes": 30977
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_other.jsonl",
+      "sha256": "13af66da8ced7b2f67acead01f32d4dca8c95d5720b5e204dfd00af3cad815b2",
+      "bytes": 41281
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_philosophy.jsonl",
+      "sha256": "06c3bf2ee0da993172f8f224cad9b89aae325da409c6060ec7e5459cb05047ad",
+      "bytes": 95894
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_physics.jsonl",
+      "sha256": "c0000645440a6d2fa4629b37ed04b6f31c36014232d46981197132415a1c004a",
+      "bytes": 29124
+    },
+    {
+      "path": "capability/mmlu_pro/20260918_132243/predictions/qwen3.8-flash-next-w4a16/mmlu_pro_psychology.jsonl",
+      "sha256": "6e2a0651140a41e3a77be7e474983cf5a2e1961eaf3381d71d2be3b0405e9316",
+      "bytes": 105250
+    },
+    {
+      "path": "capability/ifeval/20260918_133506/predictions/qwen3.8-flash-next-w4a16/ifeval_default.jsonl",
+      "sha256": "6db39e9c0b6da02a712955e3fdcc5601478e14f02cb1d3ff8220533f529d17cc",
+      "bytes": 293078
+    },
+    {
+      "path": "capability/aime24/20260918_133905/predictions/qwen3.8-flash-next-w4a16/aime24_default.jsonl",
+      "sha256": "fea242793ddf20cdb19f262ea10c3f37ba00249b7da8674cd98dc67eeb879b17",
+      "bytes": 1170226
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_accountant.jsonl",
+      "sha256": "627e764e4b88e9a7c941ccbdf755b292e1f6a3ad192e34288f024f07c9e860ff",
+      "bytes": 8698
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_advanced_mathematics.jsonl",
+      "sha256": "023246c3792e9f8a49c8ac4034c52423fb6723b9027f0f5d7621e10e2ba51dd7",
+      "bytes": 18706
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_basic_medicine.jsonl",
+      "sha256": "1270e4e1f4588e2cb2a5fa3b6cda60a81a77c25cf9a200669dbc43bd2c6b533d",
+      "bytes": 5403
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_business_administration.jsonl",
+      "sha256": "51fe5e8aef0a68171e601ea43899a5707bac93bb4d32ac279c98b731f3ef4347",
+      "bytes": 6719
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_chinese_language_and_literature.jsonl",
+      "sha256": "cfdad463ccbe30aa4b6d714d6d7fa41666b94f6019148aece658bffd193cc74a",
+      "bytes": 9916
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_civil_servant.jsonl",
+      "sha256": "86b754be374d2819b93f601687353437f077052b6009a72cf4d37c89dbe7be8e",
+      "bytes": 9835
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_clinical_medicine.jsonl",
+      "sha256": "d9ba20cf3b10098d3fd9c5fa743f8a1fdbf24ca71823b14b108588dd4030990f",
+      "bytes": 7377
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_college_chemistry.jsonl",
+      "sha256": "f65c579222f5a55108ec0388ce9d160fcacfdef9901ba3f8d250830d5ea6c787",
+      "bytes": 9073
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_college_economics.jsonl",
+      "sha256": "87d29c2c36cf4a8862c45bc9610b14b88108e387c5f8796063d3445995b9c8ce",
+      "bytes": 7686
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_college_physics.jsonl",
+      "sha256": "7029839635e4cc115c16f98c8084883d4c64fb31616c313ee0df8932ff260a0e",
+      "bytes": 8111
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_college_programming.jsonl",
+      "sha256": "a6ed3d6b77e1720101a24fcc6f8a3f64363873637bc3df9f0f14d9c5ef5e2320",
+      "bytes": 7979
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_computer_architecture.jsonl",
+      "sha256": "cc9a49f11ae256e52679eab088e33652994749fe5d058761db043937b51e73ac",
+      "bytes": 8972
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_computer_network.jsonl",
+      "sha256": "cc922c3cbdcf64a7c9bafaf632cbf1bc18898a11fce8c7ba61aa479a6f916b02",
+      "bytes": 129711
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_education_science.jsonl",
+      "sha256": "640de5e60e3f62830ff7510200a7dd1a6945d27c70c1533783c952d4b45f6469",
+      "bytes": 7637
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_high_school_history.jsonl",
+      "sha256": "7e3c4ce976aec78312410d8e1206a6c1fd7d744c98947b8364315e5fc128ca2e",
+      "bytes": 7777
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_law.jsonl",
+      "sha256": "21387234f6f023d4ae3d53a6f821964846380f61f8ad629fa837efb4a5dc0021",
+      "bytes": 10097
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_logic.jsonl",
+      "sha256": "1f41b4dfa0905f2d2e8486e88a31ab789d2f50efcd379b1060ef3f50487757e7",
+      "bytes": 11948
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_modern_chinese_history.jsonl",
+      "sha256": "709172cc2b64c142320e73750bbef4c772df36ba87afa7aa3f50e28767eaab49",
+      "bytes": 6872
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_operating_system.jsonl",
+      "sha256": "efa9fc18b1cf2c5b00b78814f6f292432dc81be63d77c12f290ff889d5500f3a",
+      "bytes": 6815
+    },
+    {
+      "path": "capability/ceval/20260918_140857/predictions/qwen3.8-flash-next-w4a16/ceval_probability_and_statistics.jsonl",
+      "sha256": "64fac604b7d13842a9cc12db9c05d0eec75f0a7c287054af3df18603ac68585a",
+      "bytes": 13278
+    },
+    {
+      "path": "capability/live_code_bench/20260918_141351/predictions/qwen3.8-flash-next-w4a16/live_code_bench_release_latest.jsonl",
+      "sha256": "2e8ee729b385c947e9fdbf45599e997f9bc36c4dadb2ebb89f35be4bc7e64508",
+      "bytes": 223625
+    }
+  ],
+  "prediction_records_sha256": "12e211ce2dba0c4bc07d75dbe1fbd2ffaf6e3629d1a9fe97e3876cb2aab82f5b",
+  "benchmark_report_files": [
+    {
+      "path": "capability/mmlu_pro/20260918_132243/reports/qwen3.8-flash-next-w4a16/mmlu_pro.json",
+      "sha256": "52ee1cc7240e943c2debd6870dd5b75e97b2c00fe31bb63fc6c5ad4f650238b3",
+      "bytes": 15222
+    },
+    {
+      "path": "capability/ifeval/20260918_133506/reports/qwen3.8-flash-next-w4a16/ifeval.json",
+      "sha256": "a3b1f6230d06d285ec92b79912c046d6a9fa397169dab6490a3037100fe75e85",
+      "bytes": 15251
+    },
+    {
+      "path": "capability/aime24/20260918_133905/reports/qwen3.8-flash-next-w4a16/aime24.json",
+      "sha256": "ded155b3af3ce35cd24b3eb024562c5dc20029973be1231bed44f246d05faec0",
+      "bytes": 10600
+    },
+    {
+      "path": "capability/ceval/20260918_140857/reports/qwen3.8-flash-next-w4a16/ceval.json",
+      "sha256": "e6f03e9c1dd2c04a989e24bf84cc27eae51759f9d46c0858ea9a4007479d3c95",
+      "bytes": 18817
+    },
+    {
+      "path": "capability/live_code_bench/20260918_141351/reports/qwen3.8-flash-next-w4a16/live_code_bench.json",
+      "sha256": "5888f40c17b2bcd260d874bd5b64b36ca0bba3887cf6ac1c8c7f186d8aadac0b",
+      "bytes": 12405
+    }
+  ]
+}
