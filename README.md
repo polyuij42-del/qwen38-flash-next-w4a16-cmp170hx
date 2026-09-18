@@ -319,7 +319,7 @@ llst report latest                        # 生成对比仪表盘
 | `data/kv-block-scan.tsv` | KV ↔ K/block 双因素数据 |
 | `data/concurrency-ladder.tsv` | 并发阶梯数据 |
 | `data/13-scenario-table.tsv` · `raw-13.jsonl` | 13 场景速度与原始记录 |
-| `bench/` | `conc.py` / `prefill_probe.py` / `parse13.py` / `prompts.json` |
+| `bench/` | `conc.py` / `prefill_probe.py` / `parse13.py` / `prompts.json` / `stress2x32k.py`（2 并发长文压测，见 [#1](https://github.com/polyuij42-del/qwen38-flash-next-w4a16-cmp170hx/issues/1)） |
 | `results/` | MTP+block 全量报告、并发性能报告、全表格 |
 | `results/llst/` | LLST 102 题能力体检（四轮：截断版 / xhigh / AIME24 追测 / 不限制 250000）：**四轮完整报告长图**、自包含仪表盘、逐题截断统计、逐题推理 token、原始汇总 |
 
